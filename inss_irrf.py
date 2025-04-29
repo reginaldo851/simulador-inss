@@ -100,7 +100,7 @@ if st.button("Calcular"):
         st.write(f"Desconto de IRRF: {formatar_valor(desconto_irrf)}")
         st.success(f"Salário Líquido: {formatar_valor(salario_liquido)}")
 
-        # Mensagem de autoria sempre exibida ao final
+        # Apenas a mensagem de autoria
         st.caption("Cálculo atualizado em Maio/2025. Reginaldo Ramos | Explica no Quadro!")
     else:
         st.warning("Por favor, insira um salário válido acima de R$ 0,00.")
