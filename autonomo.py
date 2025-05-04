@@ -16,7 +16,10 @@ def calcular_inss_autonomo(valor_servico, regime):
 
     return round(inss, 2)
 
-def calcular_irrf(base_irrf):
+def calcular_irrf(valor_servico, inss):
+    deducao_minima_inss = 607.20
+    base_irrf = valor_servico - max(inss, deducao_minima_inss)
+
     if base_irrf <= 2428.80:
         aliquota = 0.0
         deducao = 0.00
@@ -34,10 +37,7 @@ def calcular_irrf(base_irrf):
         deducao = 908.73
 
     irrf = base_irrf * aliquota - deducao
-    return round(max(irrf, 0), 2)
-
-def calcular_iss(valor_servico, aliquota_iss):
-    return round(valor_servico * (aliquota_iss / 100), 2)
+    return round(max(irrf, 0), 2), base_irrf
 
 def formatar(valor):
     return f"R$ {valor:,.2f}".replace(",", "v").replace(".", ",").replace("v", ".")
@@ -48,7 +48,6 @@ st.title("Simulador Autônomo (2025)")
 
 regime = st.selectbox("Escolha o regime de contribuição ao INSS:", ["Completo", "Simplificado"])
 valor_servico = st.number_input("Informe o valor total do serviço (R$):", min_value=0.0, step=100.0, format="%.2f", placeholder="")
-aliquota_iss = st.slider("Escolha a alíquota de ISS (%):", min_value=2.0, max_value=5.0, step=0.1)
 
 # Estilização do botão azul
 st.markdown("""
@@ -71,25 +70,22 @@ st.markdown("""
 if st.button("Calcular"):
     if valor_servico > 0:
         inss = calcular_inss_autonomo(valor_servico, regime)
-        base_irrf = valor_servico - inss
-        irrf = calcular_irrf(base_irrf)
-        iss = calcular_iss(valor_servico, aliquota_iss)
-        liquido = valor_servico - inss - irrf - iss
+        irrf, base_irrf = calcular_irrf(valor_servico, inss)
+        liquido = valor_servico - inss - irrf
 
         st.subheader("Resumo do Cálculo:")
         st.write(f"Regime de Contribuição: {regime}")
         st.write(f"Valor Bruto do Serviço: {formatar(valor_servico)}")
         st.write(f"Desconto de INSS: {formatar(inss)}")
-        st.write(f"Base de Cálculo do IRRF: {formatar(base_irrf)}")
+        st.write(f"Base de Cálculo do IRRF (com dedução mínima de INSS): {formatar(base_irrf)}")
         st.write(f"Desconto de IRRF: {formatar(irrf)}")
-        st.write(f"Desconto de ISS ({aliquota_iss:.1f}%): {formatar(iss)}")
         st.success(f"Valor Líquido a Receber: {formatar(liquido)}")
 
         st.markdown(
             "<div style='text-align: justify; font-size: 0.9em;'>"
             "<strong>Cálculo atualizado em Maio/2025</strong> – Desenvolvido por Reginaldo Ramos | Explica no Quadro! "
             "Esta é uma ferramenta auxiliar para a atividade de planejamento fiscal e tributário. "
-            "Sempre consultar a legislação aplicável para o cálculo e recolhimento dos tributos devidos."
+            "Sempre consultar a legislação aplicável ao cálculo e recolhimento dos tributos devidos."
             "</div>",
             unsafe_allow_html=True
         )
